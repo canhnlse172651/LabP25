@@ -1,170 +1,56 @@
-package FileManager;
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package data;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
+import business.entity.Product;
+import business.entity.Receipt;
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 
-import BussinessLayer.Entity.Product;
-import BussinessLayer.Entity.Warehouse;
-import BussinessLayer.Service.warehouseService;
-import DatalayerProductDao.IProductDao;
-import DatalayerProductDao.IWarehouseDao;
-import DatalayerProductDao.ProductDao;
-import DatalayerProductDao.WarehouseDao;
+/**
+ *
+ * @author lyhai
+ */
+public class FileManager implements IManagerFile {
 
-public class FileManager implements IFileManager {
+    private File inputFile;
 
-	private static final IFileManager MY_FILE_MANAGER = new FileManager();
+    public FileManager(String fileName) throws IOException {
+        inputFile = new File(fileName);
 
-	IProductDao irDao = new ProductDao().getProductDao();
+        if (!inputFile.exists()) {
+            if (!inputFile.createNewFile()) {
+                throw new RuntimeException("Can not create product.txt file");
+            }
+        }
+    }
 
-	IWarehouseDao iWarehouseDao = new WarehouseDao().getWarehouseDao();
+    @Override
+    public void writeDataToFile(List<Product> list) throws Exception {
+        PrintWriter pw = new PrintWriter(inputFile);
+        for (Product e : list) {
+            pw.println(e);
+        }
+        pw.close();
+    }
 
-	public static IFileManager getFileManager() {
-		return MY_FILE_MANAGER;
-	}
-
-	@Override
-	public void saveFileProduct(List<Product> list) {
-		FileOutputStream fos = null;
-
-		try {
-			fos = new FileOutputStream("product.txt");
-			for (Product product : list) {
-				String line = product.getFileLine() + "\n";
-				byte b[] = line.getBytes();
-				fos.write(b);
-			}
-
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (fos != null) {
-				try {
-					fos.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-
-	}
-
-	@Override
-	public void saveFileWarehouse(List<Warehouse> list) {
-//		FileOutputStream fos = null;
-//		
-		List<Warehouse> newList = new ArrayList<Warehouse>();
-		List<Product> newList2 = new ArrayList<Product>();
-		Warehouse warehouse = new Warehouse("123", "213", newList2);
-		newList.add(warehouse);
-//
-//		try {
-//			fos = new FileOutputStream("warehouse.txt");
-//			for (Warehouse wareProduct : newList) {
-//				String line =  wareProduct.toString();
-//				byte b[] = line.getBytes();
-//				fos.write(b);
-//			}
-//
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} finally {
-//			if (fos != null) {
-//				try {
-//					fos.close();
-//				} catch (IOException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-//
-//		// TODO Auto-generated method stub
-		try {
-			FileWriter fileWriter = new FileWriter("sa.txt");
-
-	        try (BufferedWriter bWriter = new BufferedWriter(fileWriter)) {
-
-	            StringBuilder sBuilder = new StringBuilder();
-	            for (Warehouse warehouse1 :newList) {
-	                sBuilder.append(warehouse1.toString()).append("\n");
-	            }
-	            sBuilder.deleteCharAt(sBuilder.length() - 1);
-
-	            bWriter.write(sBuilder.toString());
-	        }
-
-		}catch (Exception e) {
-			// TODO: handle exception
-			e.getMessage();
-		}
-	}
-
-	@Override
-	public void loadFile(List<Product> list, boolean option) {
-		FileReader reader = null;
-		BufferedReader buff = null;
-		String a = null;
-		if (option) {
-			a = "product.txt";
-		} else {
-			a = "warehouse.txt";
-		}
-
-		try {
-			reader = new FileReader(a);
-			buff = new BufferedReader(reader);
-			String line;
-
-			while ((line = buff.readLine()) != null) {
-				if (line.isEmpty()) {
-					continue;
-				}
-				Product aProduct = new Product();
-				aProduct.pase(line);
-				irDao.getList().add(aProduct);
-
-			}
-			System.out.println("Load data from File sucsess");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				reader.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (buff != null) {
-				try {
-					buff.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-
-	}
+    @Override
+    public List<String> readDataFromFile() throws Exception {
+        return  Files.readAllLines(inputFile.toPath(), StandardCharsets.UTF_8);
+    }
+    @Override
+    public void writeReceiptToFile(List<Receipt> list) throws Exception{
+        try (PrintWriter pw = new PrintWriter(inputFile)) {
+            for (Receipt r : list) {
+                pw.println(r);
+            }
+            pw.close();
+        }
+    }
 }
